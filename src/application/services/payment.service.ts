@@ -24,7 +24,7 @@ export class PaymentService {
   ) {}
 
   getPayments() {
-    return ['Payment 1', 'Payment 2'];
+    return ['Payment 1', 'Payment 2 '];
   }
 
   async createTokenCard(card: Card): Promise<any> {

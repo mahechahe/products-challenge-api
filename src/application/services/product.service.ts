@@ -31,7 +31,7 @@ export class ProductService {
 
       return result.Item;
     } catch (error) {
-      console.error('Error al obtener el producto por ID:', error);
+      console.error('Error al obtener el producto por ID :', error);
       throw new HttpException(
         'Error al obtener el producto.',
         HttpStatus.INTERNAL_SERVER_ERROR,
