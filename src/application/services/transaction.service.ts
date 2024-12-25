@@ -1,7 +1,6 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { WOMPI_API_URL } from '../../configuration';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -27,7 +26,7 @@ export class TransactionsService {
         idTransaction: response.id,
       };
     } catch (error) {
-      console.error('Error al obtener el producto por ID:', error);
+      console.error('Error al obtener el producto por ID :', error);
       throw new HttpException(
         'Error al obtener el estado de la transaccion',
         HttpStatus.INTERNAL_SERVER_ERROR,
