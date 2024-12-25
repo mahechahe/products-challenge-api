@@ -7,7 +7,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   /* Config */
-  app.setGlobalPrefix('api/v1');
   app.enableVersioning();
   app.enableCors({
     origin: ['http://localhost:5173'],
