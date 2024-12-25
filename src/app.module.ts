@@ -5,6 +5,7 @@ import { WebhookModule } from './infrastructure/modules/webhook.module';
 import { PaymentsModule } from './infrastructure/modules/payments.module';
 import { ProductsModel } from './infrastructure/modules/products.module';
 import { TransactionsModule } from './infrastructure/modules/transactions.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TransactionsModule } from './infrastructure/modules/transactions.module
     TransactionsModule,
     DynamoDBModule,
     WebhookModule,
+    ConfigModule.forRoot(),
   ],
   providers: [],
   controllers: [HelloController],
