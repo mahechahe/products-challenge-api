@@ -10,6 +10,7 @@ import {
   EventWompi,
   ResponseWompi,
 } from '../../domain/entities/webhook.entity';
+import { UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
 export class WebHookService {
   constructor(
@@ -37,7 +38,7 @@ export class WebHookService {
     const result = await this.dynamoClient.send(new GetCommand(checkParams));
 
     if (!result.Item) {
-      throw new HttpException('PAYMENT NOT FOUND', HttpStatus.NOT_FOUND);
+      throw new HttpException('PAYMENT NOT FOUND ', HttpStatus.NOT_FOUND);
     }
 
     if (event.data.transaction.status === 'APPROVED') {
@@ -56,6 +57,36 @@ export class WebHookService {
       };
 
       await this.dynamoClient.send(new UpdateCommand(checkParamsUpdate));
+
+      /* Actualizar el stock de productos */
+      const updateStock = async (productId: string) => {
+        const params = {
+          TableName: 'products',
+          Key: {
+            id: { N: productId.toString() },
+          },
+          UpdateExpression: 'SET totalUnits = totalUnits - :decrement', // Reducir el stock en 1
+          ExpressionAttributeValues: {
+            ':decrement': { N: '1' },
+          },
+        };
+
+        try {
+          const data = await this.dynamoClient.send(
+            new UpdateItemCommand(params),
+          );
+          console.log('Stock actualizado ', data);
+        } catch (error) {
+          console.error('Error actualizando el stock', error);
+        }
+      };
+
+      const itemProducts = result.Item.products_transaction;
+      const productIds = itemProducts.split(',').map((id: string) => id.trim());
+
+      productIds.forEach((id: string) => {
+        updateStock(id);
+      });
     }
 
     if (event.data.transaction.status === 'REJECTED') {
