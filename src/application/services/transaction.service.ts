@@ -2,6 +2,7 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { WOMPI_API_URL } from '../../configuration';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TransactionsService {
@@ -9,12 +10,16 @@ export class TransactionsService {
     @Inject('DYNAMO_CLIENT')
     private readonly dynamoClient: DynamoDBDocumentClient,
     private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
   async findStatusTransaction(transactionId: string): Promise<any> {
     try {
       const response = await this.httpService.axiosRef
-        .get(`${WOMPI_API_URL}/transactions/${transactionId}`, {})
+        .get(
+          `${this.configService.get<string>('WOMPI_API_URL')}/transactions/${transactionId}`,
+          {},
+        )
         .then((response) => response.data.data);
 
       return {

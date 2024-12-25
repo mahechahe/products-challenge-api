@@ -1,11 +1,15 @@
 import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ProductService } from '../../application/services/product.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller({})
 export class ProductController {
   productService: ProductService;
 
-  constructor(productService: ProductService) {
+  constructor(
+    productService: ProductService,
+    private configService: ConfigService,
+  ) {
     this.productService = productService;
   }
 

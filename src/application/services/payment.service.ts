@@ -6,18 +6,13 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import {
-  WOMPI_API_URL,
-  WOMPI_INTEGRITY_KEY,
-  WOMPI_PRIVATE_KEY,
-  WOMPI_PUBLIC_KEY,
-} from '../../configuration';
+import { Acceptance, Card, Token } from '../../domain/entities/card.entity';
 import {
   PaymentBodyDto,
   TransactionDto,
 } from '../../domain/entities/payment.entity';
-import { Acceptance, Card, Token } from '../../domain/entities/card.entity';
 
 @Injectable()
 export class PaymentService {
@@ -25,6 +20,7 @@ export class PaymentService {
     @Inject('DYNAMO_CLIENT')
     private readonly dynamoClient: DynamoDBDocumentClient,
     private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
   getPayments() {
@@ -42,12 +38,16 @@ export class PaymentService {
       };
 
       const response = await this.httpService.axiosRef
-        .post(`${WOMPI_API_URL}/tokens/cards`, bodyCard, {
-          headers: {
-            Authorization: `Bearer ${WOMPI_PUBLIC_KEY}`,
-            Content_Type: 'application/json',
+        .post(
+          `${this.configService.get<string>('WOMPI_API_URL')}/tokens/cards`,
+          bodyCard,
+          {
+            headers: {
+              Authorization: `Bearer ${this.configService.get<string>('WOMPI_PUBLIC_KEY')}`,
+              Content_Type: 'application/json',
+            },
           },
-        })
+        )
         .then((response) => response.data.data);
 
       const checkParams = {
@@ -104,7 +104,7 @@ export class PaymentService {
   }
 
   async getAcceptanceToken(): Promise<Acceptance> {
-    const url = `${WOMPI_API_URL}/merchants/${WOMPI_PUBLIC_KEY}`;
+    const url = `${this.configService.get<string>('WOMPI_API_URL')}/merchants/${this.configService.get<string>('WOMPI_PUBLIC_KEY')}`;
 
     const response = await this.httpService.axiosRef
       .get(url)
@@ -148,7 +148,7 @@ export class PaymentService {
 
     const AMOUNT_IN_CENTS = getItem.total_transaction * 100;
 
-    const SIGNATURE = `${REFERENCE_PAY}${AMOUNT_IN_CENTS}COP${WOMPI_INTEGRITY_KEY}`;
+    const SIGNATURE = `${REFERENCE_PAY}${AMOUNT_IN_CENTS}COP${this.configService.get<string>('WOMPI_INTEGRITY_KEY')}`;
 
     /* Encrypt SIGNATURE using SHA256 */
     const hash = crypto.createHash('sha256').update(SIGNATURE).digest('hex');
@@ -178,11 +178,11 @@ export class PaymentService {
 
     let paymentTransaction;
     try {
-      const url = `${WOMPI_API_URL}/transactions`;
+      const url = `${this.configService.get<string>('WOMPI_API_URL')}/transactions`;
       paymentTransaction = await this.httpService.axiosRef
         .post(url, body, {
           headers: {
-            Authorization: `Bearer ${WOMPI_PRIVATE_KEY}`,
+            Authorization: `Bearer ${this.configService.get<string>('WOMPI_PRIVATE_KEY')}`,
             Content_Type: 'application/json',
           },
         })
